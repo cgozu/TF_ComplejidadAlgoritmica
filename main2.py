@@ -104,7 +104,6 @@ def find_shortest_path(G, start, goal):
 def find_safest_path_button():
     start = node_start_var.get()
     goal = node_goal_var.get()
-
     try:
         start = int(start)
         goal = int(goal)
@@ -238,10 +237,39 @@ def generate_map(path):
     # Imprimir mensaje en consola
     print("Resultado generado")
 
+def generate_full_map(G):
+    m = folium.Map(location=lima_coords, zoom_start=14)
+
+    for node in G.nodes:
+        coord = (G.nodes[node]['coord1lat1'], G.nodes[node]['coord1lat2'])
+        folium.Marker(coord, popup=f"Nodo {node}").add_to(m)
+
+    for node1, node2, data in G.edges(data=True):
+        coord1 = (G.nodes[node1]['coord1lat1'], G.nodes[node1]['coord1lat2'])
+        coord2 = (G.nodes[node2]['coord1lat1'], G.nodes[node2]['coord1lat2'])
+
+        # Añadir línea que conecta los dos nodos
+        folium.PolyLine(
+            locations=[coord1, coord2],
+            color='blue',
+            weight=5,
+            popup=f"Calle: {data['calle']}, Seguridad: {data['seguridad']}, Distancia: {data['distance']} km"
+        ).add_to(m)
+
+    # Guardar el mapa en un archivo HTML
+    m.save('mapa_completo.html')
+
+    # Abrir el archivo HTML generado
+    import webbrowser
+    webbrowser.open_new_tab('mapa_completo.html')
+
+    # Imprimir mensaje en consola
+    print("Mapa completo generado y guardado como 'mapa_completo.html'.")
+
 
 # Configuración de la interfaz gráfica
 root = tk.Tk()
-root.title("Buscar Camino Más Corto")
+root.title("PathGuard")
 
 # Variables para almacenar los nodos de inicio y destino seleccionados
 node_start_var = tk.StringVar(root)
@@ -265,10 +293,13 @@ find_button = ttk.Button(main_frame, text="Buscar Camino Más Corto", command=fi
 find_button.grid(row=2, column=0, columnspan=2, pady=10)
 
 find_safest_button = ttk.Button(main_frame, text="Buscar Camino Más Seguro", command=find_safest_path_button)
-find_safest_button.grid(row=4, column=0, columnspan=2, pady=10)
+find_safest_button.grid(row=3, column=0, columnspan=2, pady=10)
 
 find_optimal_button = ttk.Button(main_frame, text="Buscar Camino Óptimo (Puntaje combinado)", command=find_optimal_path_button)
-find_optimal_button.grid(row=5, column=0, columnspan=2, pady=10)
+find_optimal_button.grid(row=4, column=0, columnspan=2, pady=10)
+
+show_full_map_button = ttk.Button(main_frame, text="Mostrar Mapa Completo", command=lambda: generate_full_map(G))
+show_full_map_button.grid(row=5, column=0, columnspan=2, pady=10)
 
 # Etiqueta para mostrar el resultado del camino más corto
 result_label = ttk.Label(main_frame, text="")
